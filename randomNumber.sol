@@ -4,7 +4,7 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./reentrancy.sol";
+
 
 
 
@@ -14,6 +14,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     using Counters for Counters.Counter;
     event RequestedUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
+ 
+    Counters.Counter public _addressCounter;
+
 
     //emit when the user earns a reward
     //reward subs: 0 => tryAgain; 1 => freeSpin; 2 => JackPot; 3 => 1 HGC; 4 => babyBear; 5 => 1 HNY; 6 => 5 HNY;
@@ -47,6 +50,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     }
 
     mapping(address => user) public addressToUser;
+    mapping(uint256 => address) public counterToAddress;
 
 
     mapping(bytes32 => address) public requestIdToAddress;
@@ -70,7 +74,13 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     function spinWheel() public nonReentrant {
         bool sent = HNYtokenAddress.transferFrom(msg.sender, address(this), rate);
         require(sent, "Failed to spin the wheel");
+
+        _addressCounter.increment();
+        counterToAddress[_addressCounter.current()] = msg.sender;
+
         makeRequestUint256();
+
+
     }
 
     //claim rewards, you need to specify which reward you want to claim
@@ -139,7 +149,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         emit RequestedUint256(requestId);
     }
 
-    
+    mapping(uint256 => address) public deus;
 
     // AirnodeRrp will call back with a response
     function fulfillUint256(bytes32 requestId, bytes calldata data)
@@ -151,44 +161,48 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             expectingRequestWithIdToBeFulfilled[requestId],
             "Request ID not known"
         );
+
+        
         expectingRequestWithIdToBeFulfilled[requestId] = false;
         uint256 qrngUint256 = abi.decode(data, (uint256));
         // Do what you want with `qrngUint256` here...
 
         uint256 randomic = ((qrngUint256) % 999);
 
+        deus[1] = counterToAddress[_addressCounter.current()];
+
         if (randomic >= 0 && randomic <= 449){
-            emit RewardReceived(0, msg.sender);
+            emit RewardReceived(0, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 450 && randomic <= 649){
-            addressToUser[msg.sender].freeSpin = addressToUser[msg.sender].freeSpin + 1;
-            emit RewardReceived(1, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].freeSpin = addressToUser[counterToAddress[_addressCounter.current()]].freeSpin + 1;
+            emit RewardReceived(1, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 650 && randomic <= 654){
-            addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC + 1;
-            emit RewardReceived(2, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].HGC = addressToUser[counterToAddress[_addressCounter.current()]].HGC + 1;
+            emit RewardReceived(2, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 655 && randomic <= 669){
-            addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC + 1;
-            emit RewardReceived(3, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].HGC = addressToUser[counterToAddress[_addressCounter.current()]].HGC + 1;
+            emit RewardReceived(3, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 670 && randomic <= 769){
-            addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear + 1;
-            emit RewardReceived(4, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].babyBear = addressToUser[counterToAddress[_addressCounter.current()]].babyBear + 1;
+            emit RewardReceived(4, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 770 && randomic <= 969){
-            addressToUser[msg.sender].HNY = addressToUser[msg.sender].HNY + 1;
-            emit RewardReceived(5, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 1;
+            emit RewardReceived(5, counterToAddress[_addressCounter.current()]);
         }
 
         if (randomic >= 970 && randomic <= 999){
-            addressToUser[msg.sender].HNY = addressToUser[msg.sender].HNY + 5;
-            emit RewardReceived(6, msg.sender);
+            addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 5;
+            emit RewardReceived(6, counterToAddress[_addressCounter.current()]);
         }
         emit ReceivedUint256(requestId, qrngUint256);
     }
