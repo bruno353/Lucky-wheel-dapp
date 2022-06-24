@@ -1,9 +1,9 @@
 # Lucky-wheel-dapp 
 Rospten:
-randomNumber.sol -> 0x840996b444ACE8479686C5eE6D1821e0044f9cEA <br />
-HGCToken.sol -> 0xD5f05EF3509051A30cC63D903Eb936a2d7eECEa7 <br />
-HNYToken.sol -> 0x9113bcfC695849aBFc219D867626Df4B66067673 <br />
-babyBearToken.sol -> 0x11973559feD5A9d3e7e1dc5C09d7a3405ae0Da68 <br />
+randomNumber.sol -> 0xbb59e7931f9F83f4251EE99297302F4c97b98309 <br />
+HGCToken.sol -> 0xef203eb53f0956cd3aFf17E13252354e42f5A4a5 <br />
+HNYToken.sol -> 0xd485f20608fC8C970DCC284875bE29Fa66bA8446 <br />
+babyBearToken.sol -> 0x4993c4c43E55c056999de4C9f85778489F3b7b09 <br />
 
 
 
