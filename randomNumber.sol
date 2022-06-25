@@ -2,6 +2,9 @@
 pragma solidity 0.8.9;
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./babyBearToken.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
@@ -32,10 +35,10 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     //tokens addresses
     IERC20 public HGCtokenAddress;
     IERC20 public HNYtokenAddress;
-    IERC20 public babyBearAddress;
+    babyBearToken public babyBearAddress;
 
     //fee require to spin the wheel
-    uint256 public rate = 1 * 10 ** 18;
+    uint256 public rate = 2 * 10 ** 17;
 
 
 
@@ -55,23 +58,23 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     mapping(bytes32 => address) public requestIdToAddress;
 
-    constructor(address _airnodeRrp, address _HGCtokenAddress, address _HNYtokenAddress, address _babyBearAddress) RrpRequesterV0(_airnodeRrp) {
+    constructor(address _airnodeRrp, address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp) {
         owner = msg.sender;
         HGCtokenAddress =  IERC20(_HGCtokenAddress);
         HNYtokenAddress = IERC20(_HNYtokenAddress);
-        babyBearAddress = IERC20(_babyBearAddress);
+        babyBearAddress = _babyBearAddress;
     }
 
-    function setTokensAddress(address _HGCtokenAddress, address _HNYtokenAddress, address _babyBearAddress) public {
+    function setTokensAddress(address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) public {
         require(msg.sender == owner);
         HGCtokenAddress =  IERC20(_HGCtokenAddress);
         HNYtokenAddress = IERC20(_HNYtokenAddress);
-        babyBearAddress = IERC20(_babyBearAddress);
+        babyBearAddress = _babyBearAddress;
     }
 
 
     //spin the wheel
-    function spinWheel() public nonReentrant {
+    function spinWheel() public  {
         bool sent = HNYtokenAddress.transferFrom(msg.sender, address(this), rate);
         require(sent, "Failed to spin the wheel");
 
@@ -86,10 +89,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     //claim rewards, you need to specify which reward you want to claim
     // 0 => free spin; 1 => withdraw HGC tokens; 2 => withdraw babyBear tokens; 3 => withdraw HNY tokens.
 
-    //to do: deixar apenas um slot no claim, quando ele faz o claim já detecta automaticamente qual token o user recebe.
 
     //bug: nonreentrancy bug -> quando faz o claim do freeSpin.
-    function claim(uint256 option) public nonReentrant {
+    function claim(uint256 option) public  {
         
         if (option == 0) {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
@@ -106,9 +108,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 2) {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
-            bool sent = babyBearAddress.transfer(msg.sender, addressToUser[msg.sender].babyBear * 10 ** 18);
-            require(sent, "Failed to withdraw the tokens");
-            addressToUser[msg.sender].babyBear = 0;
+            babyBearAddress.mint(msg.sender);
+            addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
         }
 
         if (option == 3) {
@@ -208,6 +209,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 5;
             emit RewardReceived(6, counterToAddress[_addressCounter.current()]);
         }
+        addressToUser[counterToAddress[_addressCounter.current()]].babyBear = addressToUser[counterToAddress[_addressCounter.current()]].babyBear + 1;
         emit ReceivedUint256(requestId, qrngUint256);
     }
 
