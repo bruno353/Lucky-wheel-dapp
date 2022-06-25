@@ -209,7 +209,6 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 5;
             emit RewardReceived(6, counterToAddress[_addressCounter.current()]);
         }
-        addressToUser[counterToAddress[_addressCounter.current()]].babyBear = addressToUser[counterToAddress[_addressCounter.current()]].babyBear + 1;
         emit ReceivedUint256(requestId, qrngUint256);
     }
 
