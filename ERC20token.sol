@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-//THIS IS THE TIME TOKEN -> STAKEABLE TOKEN.
+
 
 contract ERC20Stakeable is ERC20 {
     
