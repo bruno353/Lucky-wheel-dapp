@@ -35,7 +35,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     IERC20 public babyBearAddress;
 
     //fee require to spin the wheel
-    uint256 public rate = 100 * 10 ** 18;
+    uint256 public rate = 1 * 10 ** 18;
 
 
 
@@ -85,6 +85,10 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     //claim rewards, you need to specify which reward you want to claim
     // 0 => free spin; 1 => withdraw HGC tokens; 2 => withdraw babyBear tokens; 3 => withdraw HNY tokens.
+
+    //to do: deixar apenas um slot no claim, quando ele faz o claim já detecta automaticamente qual token o user recebe.
+
+    //bug: nonreentrancy bug -> quando faz o claim do freeSpin.
     function claim(uint256 option) public nonReentrant {
         
         if (option == 0) {
@@ -95,21 +99,21 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 1) {
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
-            bool sent = HGCtokenAddress.transferFrom(address(this), msg.sender, rate);
+            bool sent = HGCtokenAddress.transfer(msg.sender, addressToUser[msg.sender].HGC * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].HGC = 0;
         }
 
         if (option == 2) {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
-            bool sent = babyBearAddress.transferFrom(address(this), msg.sender, rate);
+            bool sent = babyBearAddress.transfer(msg.sender, addressToUser[msg.sender].babyBear * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].babyBear = 0;
         }
 
         if (option == 3) {
             require(addressToUser[msg.sender].HNY >= 1, "You dont have 'HYN' available for claiming");
-            bool sent = HNYtokenAddress.transferFrom(address(this), msg.sender, rate);
+            bool sent = HNYtokenAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].HNY = 0;
         }
