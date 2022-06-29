@@ -32,6 +32,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     address public owner;
 
+    bool contractEnabled;
+
     //tokens addresses
     IERC20 public HGCtokenAddress;
     IERC20 public HNYtokenAddress;
@@ -58,15 +60,13 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     mapping(bytes32 => address) public requestIdToAddress;
 
-    constructor(address _airnodeRrp, address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp) {
-        owner = msg.sender;
+    constructor(address _airnodeRrp, address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  onlyOwner() {
         HGCtokenAddress =  IERC20(_HGCtokenAddress);
         HNYtokenAddress = IERC20(_HNYtokenAddress);
         babyBearAddress = _babyBearAddress;
     }
 
-    function setTokensAddress(address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) public {
-        require(msg.sender == owner);
+    function setTokensAddress(address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) public onlyOwner() {
         HGCtokenAddress =  IERC20(_HGCtokenAddress);
         HNYtokenAddress = IERC20(_HNYtokenAddress);
         babyBearAddress = _babyBearAddress;
@@ -74,7 +74,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
 
     //spin the wheel
-    function spinWheel() public  {
+    function spinWheel() public  onlyContractEnabled() {
         bool sent = HNYtokenAddress.transferFrom(msg.sender, address(this), rate);
         require(sent, "Failed to spin the wheel");
 
@@ -91,7 +91,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
 
     //bug: nonreentrancy bug -> quando faz o claim do freeSpin.
-    function claim(uint256 option) public  {
+    function claim(uint256 option) public  onlyContractEnabled() {
         
         if (option == 0) {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
@@ -108,8 +108,11 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 2) {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
-            babyBearAddress.mint(msg.sender);
-            addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
+            uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+            for (uint i = 0; i <= arrayBabyBears.length; i++) {
+                babyBearAddress.safeTransferFrom(address(this), msg.sender, i);
+                addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
+            }
         }
 
         if (option == 3) {
@@ -154,7 +157,6 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         emit RequestedUint256(requestId);
     }
 
-    mapping(uint256 => address) public deus;
 
     // AirnodeRrp will call back with a response
     function fulfillUint256(bytes32 requestId, bytes calldata data)
@@ -170,44 +172,42 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         
         expectingRequestWithIdToBeFulfilled[requestId] = false;
         uint256 qrngUint256 = abi.decode(data, (uint256));
-        // Do what you want with `qrngUint256` here...
 
         uint256 randomic = ((qrngUint256) % 999);
 
-        deus[1] = counterToAddress[_addressCounter.current()];
 
         if (randomic >= 0 && randomic <= 449){
-            emit RewardReceived(0, counterToAddress[_addressCounter.current()]);
+            emit RewardReceived(0, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 450 && randomic <= 649){
-            addressToUser[counterToAddress[_addressCounter.current()]].freeSpin = addressToUser[counterToAddress[_addressCounter.current()]].freeSpin + 1;
-            emit RewardReceived(1, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].freeSpin = addressToUser[requestIdToAddress[requestId]].freeSpin + 1;
+            emit RewardReceived(1, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 650 && randomic <= 654){
-            addressToUser[counterToAddress[_addressCounter.current()]].HGC = addressToUser[counterToAddress[_addressCounter.current()]].HGC + 1;
-            emit RewardReceived(2, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].HGC = addressToUser[requestIdToAddress[requestId]].HGC + 3;
+            emit RewardReceived(2, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 655 && randomic <= 669){
-            addressToUser[counterToAddress[_addressCounter.current()]].HGC = addressToUser[counterToAddress[_addressCounter.current()]].HGC + 1;
-            emit RewardReceived(3, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].HGC = addressToUser[requestIdToAddress[requestId]].HGC + 1;
+            emit RewardReceived(3, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 670 && randomic <= 769){
-            addressToUser[counterToAddress[_addressCounter.current()]].babyBear = addressToUser[counterToAddress[_addressCounter.current()]].babyBear + 1;
-            emit RewardReceived(4, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].babyBear = addressToUser[requestIdToAddress[requestId]].babyBear + 1;
+            emit RewardReceived(4, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 770 && randomic <= 969){
-            addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 1;
-            emit RewardReceived(5, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].HNY = addressToUser[requestIdToAddress[requestId]].HNY + 1;
+            emit RewardReceived(5, requestIdToAddress[requestId]);
         }
 
         if (randomic >= 970 && randomic <= 999){
-            addressToUser[counterToAddress[_addressCounter.current()]].HNY = addressToUser[counterToAddress[_addressCounter.current()]].HNY + 5;
-            emit RewardReceived(6, counterToAddress[_addressCounter.current()]);
+            addressToUser[requestIdToAddress[requestId]].HNY = addressToUser[requestIdToAddress[requestId]].HNY + 5;
+            emit RewardReceived(6, requestIdToAddress[requestId]);
         }
         emit ReceivedUint256(requestId, qrngUint256);
     }
@@ -217,5 +217,27 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     function returnUserWallet(address _address) public view returns(user memory){
         return addressToUser[_address];
+    }
+
+
+    //criar modifier de onlyOwner e permitir mudar o dono.
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+  }
+    function setOwner(address _address) public onlyOwner() {
+        
+        owner = _address;
+    }
+
+
+    // function to enable/disable contract, in case of error or exploit:
+    modifier onlyContractEnabled() {
+        require(contractEnabled == true);
+        _;
+    }
+
+    function enableContratc(bool _bool) public onlyOwner() {
+        contractEnabled = _bool;
     }
 }
