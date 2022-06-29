@@ -3,6 +3,7 @@ pragma solidity 0.8.9;
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./babyBearToken.sol";
+import "./HGCToken.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -35,8 +36,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     bool contractEnabled;
 
     //tokens addresses
-    IERC20 public HGCtokenAddress;
-    IERC20 public HNYtokenAddress;
+    HGCToken public HGCAddress;
+    IERC20 public HNYAddress;
     babyBearToken public babyBearAddress;
 
     //fee require to spin the wheel
@@ -60,22 +61,22 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     mapping(bytes32 => address) public requestIdToAddress;
 
-    constructor(address _airnodeRrp, address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  onlyOwner() {
-        HGCtokenAddress =  IERC20(_HGCtokenAddress);
-        HNYtokenAddress = IERC20(_HNYtokenAddress);
+    constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  onlyOwner() {
+        HGCAddress =  _HGCAddress;
+        HNYAddress = IERC20(_HNYAddress);
         babyBearAddress = _babyBearAddress;
     }
 
-    function setTokensAddress(address _HGCtokenAddress, address _HNYtokenAddress, babyBearToken _babyBearAddress) public onlyOwner() {
-        HGCtokenAddress =  IERC20(_HGCtokenAddress);
-        HNYtokenAddress = IERC20(_HNYtokenAddress);
+    function setTokensAddress(HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) public onlyOwner() {
+        HGCAddress =  _HGCAddress;
+        HNYAddress = IERC20(_HNYAddress);
         babyBearAddress = _babyBearAddress;
     }
 
 
     //spin the wheel
     function spinWheel() public  onlyContractEnabled() {
-        bool sent = HNYtokenAddress.transferFrom(msg.sender, address(this), rate);
+        bool sent = HNYAddress.transferFrom(msg.sender, address(this), rate);
         require(sent, "Failed to spin the wheel");
 
         _addressCounter.increment();
@@ -91,7 +92,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
 
     //bug: nonreentrancy bug -> quando faz o claim do freeSpin.
-    function claim(uint256 option) public  onlyContractEnabled() {
+    function claim(uint256 option) public  onlyContractEnabled() nonReentrant {
         
         if (option == 0) {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
@@ -101,23 +102,36 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 1) {
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
-            bool sent = HGCtokenAddress.transfer(msg.sender, addressToUser[msg.sender].HGC * 10 ** 18);
-            require(sent, "Failed to withdraw the tokens");
-            addressToUser[msg.sender].HGC = 0;
+            uint256 HGCAmount = addressToUser[msg.sender].HGC;
+            HGCAddress.publicMint(HGCAmount);
+
+            for (uint256 i = 1; i <= HGCAmount; i++) {
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+                uint256 length = arrayHGC.length;
+                HGCAddress.safeTransferFrom(address(this), msg.sender, arrayHGC[length - 1]);
+                addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC - 1;
+            }
+            
+
         }
 
         if (option == 2) {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
-            uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
-            for (uint i = 0; i <= arrayBabyBears.length; i++) {
-                babyBearAddress.safeTransferFrom(address(this), msg.sender, i);
+            uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
+            babyBearAddress.publicMint(babyBearAmount);
+
+            for (uint256 i = 1; i <= babyBearAmount; i++) {
+                uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+                uint256 length = arrayBabyBears.length;
+                babyBearAddress.safeTransferFrom(address(this), msg.sender, arrayBabyBears[length - 1]);
                 addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
             }
+            
         }
 
         if (option == 3) {
             require(addressToUser[msg.sender].HNY >= 1, "You dont have 'HYN' available for claiming");
-            bool sent = HNYtokenAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
+            bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].HNY = 0;
         }
