@@ -11,8 +11,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 
-
-
 contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     using Counters for Counters.Counter;
@@ -36,7 +34,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     address public owner;
 
-    bool contractEnabled;
+    bool public contractEnabled;
 
     //tokens addresses
     HGCToken public HGCAddress;
@@ -73,8 +71,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         _;
     }
 
-    constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  {
+    constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp) {
         owner = msg.sender;
+        contractEnabled = true;
         HGCAddress =  _HGCAddress;
         HNYAddress = IERC20(_HNYAddress);
         babyBearAddress = _babyBearAddress;
