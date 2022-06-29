@@ -16,15 +16,18 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     using Counters for Counters.Counter;
+
+    //events for the random number getter:
     event RequestedUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
  
-    Counters.Counter public _addressCounter;
-
-
     //emit when the user earns a reward
-    //reward subs: 0 => tryAgain; 1 => freeSpin; 2 => JackPot; 3 => 1 HGC; 4 => babyBear; 5 => 1 HNY; 6 => 5 HNY;
+    //reward subs: 0 => tryAgain; 1 => freeSpin; 2 => JackPot; 3 => 1 HGC; 4 => babyBear; 5 => 1 HNY; 6 => 5 HNY
     event RewardReceived(uint256 reward, address _address);
+
+    //emit when the user claims his rewards:
+    //reward claimed subs: 0 => freeSpin; 1 => HGC; 2 => babyBear; 3 => HNY
+    event RewardClaimed(uint256 reward, address user);
 
     // These can be set using setRequestParameters())
     address public airnode;
@@ -41,13 +44,11 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     babyBearToken public babyBearAddress;
 
     //fee require to spin the wheel
-    uint256 public rate = 2 * 10 ** 17;
+    uint256 public fee = 2 * 10 ** 17;
 
 
 
-    mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
-
-    //Each user will have its "wallet"
+    //Each user will have its "wallet", so it can be stored the user rewards:
     struct user {
         uint256 freeSpin;
         uint256 HGC;
@@ -55,11 +56,22 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         uint256 HNY;
     }
 
+    //mappings:
+    mapping(bytes32 => bool) public expectingRequestWithIdToBeFulfilled;
     mapping(address => user) public addressToUser;
-    mapping(uint256 => address) public counterToAddress;
-
-
     mapping(bytes32 => address) public requestIdToAddress;
+
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    // function to enable/disable contract, in case of error or exploit:
+    modifier onlyContractEnabled() {
+        require(contractEnabled == true);
+        _;
+    }
 
     constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  onlyOwner() {
         HGCAddress =  _HGCAddress;
@@ -73,14 +85,20 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         babyBearAddress = _babyBearAddress;
     }
 
+    function setOwner(address _address) public onlyOwner() {
+        owner = _address;
+    }
+
+    function setFee(uint256 _fee) public onlyOwner() {
+        fee = _fee;
+    }
+
 
     //spin the wheel
     function spinWheel() public  onlyContractEnabled() {
-        bool sent = HNYAddress.transferFrom(msg.sender, address(this), rate);
+        bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
         require(sent, "Failed to spin the wheel");
 
-        _addressCounter.increment();
-        counterToAddress[_addressCounter.current()] = msg.sender;
 
         makeRequestUint256();
 
@@ -90,14 +108,13 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     //claim rewards, you need to specify which reward you want to claim
     // 0 => free spin; 1 => withdraw HGC tokens; 2 => withdraw babyBear tokens; 3 => withdraw HNY tokens.
 
-
-    //bug: nonreentrancy bug -> quando faz o claim do freeSpin.
     function claim(uint256 option) public  onlyContractEnabled() nonReentrant {
         
         if (option == 0) {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
             addressToUser[msg.sender].freeSpin = addressToUser[msg.sender].freeSpin - 1;
             spinWheel();
+            emit RewardClaimed(0, msg.sender);
         }
 
         if (option == 1) {
@@ -112,6 +129,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
                 addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC - 1;
             }
             
+            emit RewardClaimed(1, msg.sender);
+
 
         }
 
@@ -127,6 +146,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
                 addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
             }
             
+            emit RewardClaimed(2, msg.sender);
+
         }
 
         if (option == 3) {
@@ -134,6 +155,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].HNY = 0;
+
+            emit RewardClaimed(3, msg.sender);
         }
     }
 
@@ -229,29 +252,14 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     function fundMe() public payable{
     }
 
+
     function returnUserWallet(address _address) public view returns(user memory){
         return addressToUser[_address];
     }
 
 
-    //criar modifier de onlyOwner e permitir mudar o dono.
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-  }
-    function setOwner(address _address) public onlyOwner() {
-        
-        owner = _address;
-    }
 
-
-    // function to enable/disable contract, in case of error or exploit:
-    modifier onlyContractEnabled() {
-        require(contractEnabled == true);
-        _;
-    }
-
-    function enableContratc(bool _bool) public onlyOwner() {
+    function enableContract(bool _bool) public onlyOwner() {
         contractEnabled = _bool;
     }
 }
