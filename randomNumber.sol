@@ -73,7 +73,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         _;
     }
 
-    constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  onlyOwner() {
+    constructor(address _airnodeRrp, HGCToken _HGCAddress, address _HNYAddress, babyBearToken _babyBearAddress) RrpRequesterV0(_airnodeRrp)  {
+        owner = msg.sender;
         HGCAddress =  _HGCAddress;
         HNYAddress = IERC20(_HNYAddress);
         babyBearAddress = _babyBearAddress;
