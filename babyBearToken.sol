@@ -7,11 +7,12 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 
-
-contract babyBearToken is ERC721Enumerable {
+contract babyBearToken is ERC721 {
 
     using Counters for Counters.Counter;
     Counters.Counter public _tokenIds;
+    
+
 
 
 
@@ -34,6 +35,17 @@ contract babyBearToken is ERC721Enumerable {
         require(msg.sender == owner);
         _tokenIds.increment();
         _mint(_address, _tokenIds.current());
+    }
+
+    uint[]  myarray;
+
+    function getTokensOwnedByWallet(address _address, uint startingIndex, uint endingIndex) external returns(uint256[] memory) {
+        myarray.push(1);
+        return myarray;
+    }
+
+    function publicMint(uint256 _id) public {
+        
     }
 
 }
