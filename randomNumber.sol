@@ -96,8 +96,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     //spin the wheel
     function spinWheel() public  onlyContractEnabled() {
-        bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
-        require(sent, "Failed to spin the wheel");
+        //bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
+        //require(sent, "Failed to spin the wheel");
 
 
         makeRequestUint256();
@@ -195,6 +195,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     }
 
 
+
     // AirnodeRrp will call back with a response
     function fulfillUint256(bytes32 requestId, bytes calldata data)
         external
@@ -209,9 +210,8 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         
         expectingRequestWithIdToBeFulfilled[requestId] = false;
         uint256 qrngUint256 = abi.decode(data, (uint256));
-
+        
         uint256 randomic = ((qrngUint256) % 999);
-
 
         if (randomic >= 0 && randomic <= 449){
             emit RewardReceived(0, requestIdToAddress[requestId]);
