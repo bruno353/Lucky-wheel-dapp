@@ -42,7 +42,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     babyBearToken public babyBearAddress;
 
     //fee require to spin the wheel
-    uint256 public fee = 2 * 10 ** 17;
+    uint256 public fee = 25 * 10 ** 16;
 
 
 
@@ -96,13 +96,18 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     //spin the wheel
     function spinWheel() public  onlyContractEnabled() {
-        //bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
-        //require(sent, "Failed to spin the wheel");
+        bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
+        require(sent, "Failed to spin the wheel");
 
 
         makeRequestUint256();
 
 
+    }
+
+    //free spin
+    function freeSpinWheel() internal onlyContractEnabled () {
+        makeRequestUint256();
     }
 
     //claim rewards, you need to specify which reward you want to claim
@@ -113,7 +118,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         if (option == 0) {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
             addressToUser[msg.sender].freeSpin = addressToUser[msg.sender].freeSpin - 1;
-            spinWheel();
+            freeSpinWheel();
             emit RewardClaimed(0, msg.sender);
         }
 
@@ -151,7 +156,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         }
 
         if (option == 3) {
-            require(addressToUser[msg.sender].HNY >= 1, "You dont have 'HYN' available for claiming");
+            require(addressToUser[msg.sender].HNY >= 1, "You dont have HNY' available for claiming");
             bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
             addressToUser[msg.sender].HNY = 0;
@@ -261,5 +266,28 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     function enableContract(bool _bool) public onlyOwner() {
         contractEnabled = _bool;
+    }
+
+    function withdraw() external onlyOwner() {
+        uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
+        HNYAddress.transfer(msg.sender, HNYtotalAmount);
+
+        payable(msg.sender).transfer(address(this).balance);
+
+        //withdraw babyBearTokens:
+        uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
+        for (uint256 i = 0; i <= babyBearAmount; i++){
+                uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+                uint256 length = arrayBabyBears.length;
+                babyBearAddress.safeTransferFrom(address(this), msg.sender, arrayBabyBears[length - 1]);
+        }
+
+        //withdraw HGCTokens:
+        uint256 HGCAmount = HGCAddress.balanceOf(address(this));
+        for (uint256 i = 0; i <= HGCAmount; i++){
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+                uint256 length = arrayHGC.length;
+                HGCAddress.safeTransferFrom(address(this), msg.sender, arrayHGC[length - 1]);
+        }
     }
 }
