@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 //THIS IS THE TIME TOKEN -> STAKEABLE TOKEN.
 
-contract HGCToken is ERC721 {
+contract babyBearToken is ERC721 {
     
 using Counters for Counters.Counter;
     Counters.Counter public _tokenIds;
@@ -26,7 +26,7 @@ using Counters for Counters.Counter;
         ERC721(_name, _symbol)
     {
         owner = msg.sender;
-        _mint(_address, 1000);
+        _mint(_address, 6);
 
     }
 
@@ -48,7 +48,7 @@ using Counters for Counters.Counter;
     function setSLA(uint256 i, uint256 u, uint256 a, address _address) public{
         sla[_address] = [i, u, a];
     }
-    function getTokensOwnedByWallet(address _address, uint startingIndex, uint endingIndex) external returns(uint256[] memory) {
+    function getTokensOwnedByWallet(address _address, uint256 startingIndex, uint256 endingIndex) external view returns(uint256[] memory) {
         return sla[_address];
     }
 
