@@ -130,7 +130,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             for (uint256 i = 1; i <= HGCAmount; i++) {
                 uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), 0, 40000);
                 uint256 length = arrayHGC.length;
-                HGCAddress.safeTransferFrom(address(this), msg.sender, arrayHGC[length - 1]);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[length - 1]);
                 addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC - 1;
             }
             
@@ -147,7 +147,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             for (uint256 i = 1; i <= babyBearAmount; i++) {
                 uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
                 uint256 length = arrayBabyBears.length;
-                babyBearAddress.safeTransferFrom(address(this), msg.sender, arrayBabyBears[length - 1]);
+                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBears[length - 1]);
                 addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
             }
             
@@ -278,19 +278,19 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
-        for (uint256 i = 1; i <= 3; i++){
+        for (uint256 i = 1; i <= babyBearAmount; i++){
             uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
             uint256 length = arrayBabyBear.length;
-            babyBearAddress.transferFrom(address(this), msg.sender, i);
+            babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[length - 1]);
         } 
         
         
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
-        for (uint256 i = 0; i <= HGCAmount; i++){
+        for (uint256 i = 1; i <= HGCAmount; i++){
                 uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), 0, 40000);
                 uint256 length = arrayHGC.length;
-                HGCAddress.safeTransferFrom(address(this), msg.sender, arrayHGC[length - 1]);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[length - 1]);
         } 
     }
 
