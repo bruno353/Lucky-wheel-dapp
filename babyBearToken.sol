@@ -26,7 +26,6 @@ using Counters for Counters.Counter;
         ERC721(_name, _symbol)
     {
         owner = msg.sender;
-        _mint(_address, 6);
 
     }
 
@@ -49,7 +48,16 @@ using Counters for Counters.Counter;
         sla[_address] = [i, u, a];
     }
     function getTokensOwnedByWallet(address _address, uint256 startingIndex, uint256 endingIndex) external view returns(uint256[] memory) {
-        return sla[_address];
+        uint[] memory tempTokenIds = new uint[](endingIndex);
+        uint count = 0;
+        for(uint256 i = 1; i <= endingIndex; i++){
+        if(ownerOf(i) == _address){
+            tempTokenIds[count] = i;
+            
+        }
+        count++;
+        }
+        return tempTokenIds;
     }
 
     uint256 tokenIdTest;
@@ -61,3 +69,4 @@ using Counters for Counters.Counter;
         _mint(msg.sender, tokenIdTest);
     }
 }
+
