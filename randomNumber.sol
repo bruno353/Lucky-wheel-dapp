@@ -268,26 +268,30 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         contractEnabled = _bool;
     }
 
-    function withdraw() external onlyOwner() {
+    function witdrawETH(uint256 _weiAmount) public onlyOwner() {
+        payable(msg.sender).transfer(_weiAmount);
+    }
+
+    function withdrawTokens() public onlyOwner() {
         uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
         HNYAddress.transfer(msg.sender, HNYtotalAmount);
 
-        payable(msg.sender).transfer(address(this).balance);
-
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
-        for (uint256 i = 0; i <= babyBearAmount; i++){
-                uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
-                uint256 length = arrayBabyBears.length;
-                babyBearAddress.safeTransferFrom(address(this), msg.sender, arrayBabyBears[length - 1]);
-        }
-
+        for (uint256 i = 1; i <= 3; i++){
+            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), 0, 40000);
+            uint256 length = arrayBabyBear.length;
+            babyBearAddress.transferFrom(address(this), msg.sender, i);
+        } 
+        
+        
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
         for (uint256 i = 0; i <= HGCAmount; i++){
                 uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), 0, 40000);
                 uint256 length = arrayHGC.length;
                 HGCAddress.safeTransferFrom(address(this), msg.sender, arrayHGC[length - 1]);
-        }
+        } 
     }
+
 }
