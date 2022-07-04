@@ -2,10 +2,14 @@
 // Creator: andreitoma8
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+//THIS IS THE TIME TOKEN -> STAKEABLE TOKEN.
 
 contract babyBearToken is ERC721 {
     
@@ -22,7 +26,6 @@ using Counters for Counters.Counter;
         ERC721(_name, _symbol)
     {
         owner = msg.sender;
-        _mint(_address, 1000);
 
     }
 
@@ -44,8 +47,17 @@ using Counters for Counters.Counter;
     function setSLA(uint256 i, uint256 u, uint256 a, address _address) public{
         sla[_address] = [i, u, a];
     }
-    function getTokensOwnedByWallet(address _address, uint startingIndex, uint endingIndex) external returns(uint256[] memory) {
-        return sla[_address];
+    function getTokensOwnedByWallet(address _address, uint256 startingIndex, uint256 endingIndex) external view returns(uint256[] memory) {
+        uint[] memory tempTokenIds = new uint[](endingIndex);
+        uint count = 0;
+        for(uint256 i = 1; i <= endingIndex; i++){
+        if(ownerOf(i) == _address){
+            tempTokenIds[count] = i;
+            
+        }
+        count++;
+        }
+        return tempTokenIds;
     }
 
     uint256 tokenIdTest;
