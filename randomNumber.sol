@@ -183,7 +183,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     // Calls the AirnodeRrp contract with a request
     // airnodeRrp.makeFullRequest() returns a requestId to hold onto.
-    function makeRequestUint256() internal {
+    function makeRequestUint256() private {
         bytes32 requestId = airnodeRrp.makeFullRequest(
             airnode,
             endpointIdUint256,
