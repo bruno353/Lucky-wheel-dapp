@@ -261,9 +261,6 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             emit RewardReceived(6, requestIdToAddress[requestId]);
         }
         emit ReceivedUint256(requestId, qrngUint256);
-        addressToUser[requestIdToAddress[requestId]].HNY = addressToUser[requestIdToAddress[requestId]].HNY + 1;
-        addressToUser[requestIdToAddress[requestId]].babyBear = addressToUser[requestIdToAddress[requestId]].babyBear + 1;
-        addressToUser[requestIdToAddress[requestId]].HGC = addressToUser[requestIdToAddress[requestId]].HGC + 1;
     }
 
     function fundMe() public payable{
