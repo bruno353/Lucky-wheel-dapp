@@ -137,11 +137,11 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
             HGCAddress.publicMint(HGCAmount);
+            addressToUser[msg.sender].HGC = 0;
 
             for (uint256 i = 1; i <= HGCAmount; i++) {
                 uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
                 HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
-                addressToUser[msg.sender].HGC = addressToUser[msg.sender].HGC - 1;
             }
             
             emit RewardClaimed(1, msg.sender);
@@ -153,10 +153,10 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
             babyBearAddress.publicMint(babyBearAmount);
+            addressToUser[msg.sender].babyBear = 0;
             for (uint256 i = 1; i <= babyBearAmount; i++) {
                 uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
                 babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBears[0]);
-                addressToUser[msg.sender].babyBear = addressToUser[msg.sender].babyBear - 1;
             }
             
             emit RewardClaimed(2, msg.sender);
@@ -165,14 +165,60 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 3) {
             require(addressToUser[msg.sender].HNY >= 1, "You dont have HNY' available for claiming");
+            addressToUser[msg.sender].HNY = 0;
             bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
-            addressToUser[msg.sender].HNY = 0;
+
 
             emit RewardClaimed(3, msg.sender);
         }
     }
 
+    //claim all the user rewards at the once:
+    function claimAll(uint256 startingIndex, uint256 endingIndex) public nonReentrant {
+        require(addressToUser[msg.sender].HNY >= 1 || addressToUser[msg.sender].babyBear >= 1  || addressToUser[msg.sender].HGC >= 1, "You dont have any reward to claim");
+        
+        //withdraw HNYTokens:
+        if(addressToUser[msg.sender].HNY >= 1){
+
+            addressToUser[msg.sender].HNY = 0;
+            bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
+            require(sent, "Failed to withdraw the tokens");
+
+        }
+
+        //withdraw babyBearTokens:
+        if(addressToUser[msg.sender].babyBear >= 1){
+
+            uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
+            babyBearAddress.publicMint(babyBearAmount);
+
+            addressToUser[msg.sender].babyBear = 0;
+
+            for (uint256 i = 1; i <= babyBearAmount; i++){
+
+                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
+
+            } 
+
+        }
+        
+        
+        //withdraw HGCTokens:
+        if(addressToUser[msg.sender].HNY >= 1){
+            uint256 HGCAmount = addressToUser[msg.sender].HGC;
+            HGCAddress.publicMint(HGCAmount);
+
+            addressToUser[msg.sender].HGC = 0;
+
+            for (uint256 i = 1; i <= HGCAmount; i++) {
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
+                
+            }
+        }
+    }
 
     // Set parameters used by airnodeRrp.makeFullRequest(...)
     // See makeRequestUint256()
