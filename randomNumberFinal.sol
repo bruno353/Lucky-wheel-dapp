@@ -206,7 +206,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         
         
         //withdraw HGCTokens:
-        if(addressToUser[msg.sender].HNY >= 1){
+        if(addressToUser[msg.sender].HGC >= 1){
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
             HGCAddress.publicMint(HGCAmount);
 
