@@ -175,7 +175,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     }
 
     //claim all the user rewards at the once:
-    function claimAll(uint256 startingIndex, uint256 endingIndex) public nonReentrant {
+    function claimAll(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyContractEnabled() nonReentrant {
         require(addressToUser[msg.sender].HNY >= 1 || addressToUser[msg.sender].babyBear >= 1  || addressToUser[msg.sender].HGC >= 1, "You dont have any reward to claim");
         
         //withdraw HNYTokens:
@@ -197,7 +197,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
             for (uint256 i = 1; i <= babyBearAmount; i++){
 
-                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
                 babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
 
             } 
@@ -213,7 +213,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
             addressToUser[msg.sender].HGC = 0;
 
             for (uint256 i = 1; i <= HGCAmount; i++) {
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
                 HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
                 
             }
@@ -325,14 +325,14 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         payable(msg.sender).transfer(_weiAmount);
     }
 
-    function withdrawTokens(uint256 startingIndex, uint256 endingIndex) public onlyOwner() {
+    function withdrawTokens(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyOwner() {
         uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
         HNYAddress.transfer(msg.sender, HNYtotalAmount);
 
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
         for (uint256 i = 1; i <= babyBearAmount; i++){
-            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
             babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
         } 
         
@@ -340,7 +340,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
         for (uint256 i = 1; i <= HGCAmount; i++){
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
                 HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
         } 
     }
