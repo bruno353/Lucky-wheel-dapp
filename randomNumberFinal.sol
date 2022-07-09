@@ -327,22 +327,27 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     function withdrawTokens(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyOwner() {
         uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
-        HNYAddress.transfer(msg.sender, HNYtotalAmount);
-
+        if(HNYtotalAmount >= 1){
+            HNYAddress.transfer(msg.sender, HNYtotalAmount);
+        }
+        
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
-        for (uint256 i = 1; i <= babyBearAmount; i++){
-            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
-            babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
-        } 
-        
+        if(babyBearAmount >= 1){
+            for (uint256 i = 1; i <= babyBearAmount; i++){
+                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
+                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
+            } 
+        }
         
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
-        for (uint256 i = 1; i <= HGCAmount; i++){
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
-                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
-        } 
+        if(HGCAmount >= 1){
+            for (uint256 i = 1; i <= HGCAmount; i++){
+                    uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
+                    HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
+            } 
+        }
     }
 
 
