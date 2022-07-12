@@ -165,8 +165,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         if (option == 3) {
             require(addressToUser[msg.sender].HNY >= 1, "You dont have HNY' available for claiming");
+            uint256 HNYAmount = addressToUser[msg.sender].HNY;
             addressToUser[msg.sender].HNY = 0;
-            bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
+            bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
 
 
@@ -181,8 +182,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         //withdraw HNYTokens:
         if(addressToUser[msg.sender].HNY >= 1){
 
+            uint256 HNYAmount = addressToUser[msg.sender].HNY;
             addressToUser[msg.sender].HNY = 0;
-            bool sent = HNYAddress.transfer(msg.sender, addressToUser[msg.sender].HNY * 10 ** 18);
+            bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
 
         }
@@ -327,27 +329,22 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     function withdrawTokens(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyOwner() {
         uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
-        if(HNYtotalAmount >= 1){
-            HNYAddress.transfer(msg.sender, HNYtotalAmount);
-        }
-        
+        HNYAddress.transfer(msg.sender, HNYtotalAmount);
+
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
-        if(babyBearAmount >= 1){
-            for (uint256 i = 1; i <= babyBearAmount; i++){
-                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
-                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
-            } 
-        }
+        for (uint256 i = 1; i <= babyBearAmount; i++){
+            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
+            babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
+        } 
+        
         
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
-        if(HGCAmount >= 1){
-            for (uint256 i = 1; i <= HGCAmount; i++){
-                    uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
-                    HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
-            } 
-        }
+        for (uint256 i = 1; i <= HGCAmount; i++){
+                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
+        } 
     }
 
 
