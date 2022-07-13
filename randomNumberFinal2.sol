@@ -173,6 +173,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         }
     } */
 
+
     //claiming FreeSpin tokens:
     function claimFreeSpin() public onlyContractEnabled() nonReentrant {
             require(addressToUser[msg.sender].freeSpin >= 1, "You dont have 'Free spin' available for claiming");
@@ -185,7 +186,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     function claimHGC(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
-            HGCAddress.publicMint(HGCAmount);
+            //HGCAddress.publicMint(HGCAmount);
             addressToUser[msg.sender].HGC = 0;
 
             for (uint256 i = 1; i <= HGCAmount; i++) {
@@ -200,7 +201,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     function claimBabyBear(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
-            babyBearAddress.publicMint(babyBearAmount);
+            //babyBearAddress.publicMint(babyBearAmount);
             addressToUser[msg.sender].babyBear = 0;
             for (uint256 i = 1; i <= babyBearAmount; i++) {
                 uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
@@ -394,6 +395,14 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         } 
     }
 
+
+    function preMintBabyBears(uint256 amount) public onlyOwner {
+        babyBearAddress.publicMint(amount);
+    }
+
+    function preMintHGC(uint256 amount) public onlyOwner {
+        HGCAddress.publicMint(amount);
+    }
 
 
 }
