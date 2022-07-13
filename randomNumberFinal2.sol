@@ -184,6 +184,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     //claiming HGC tokens:
     function claimHGC(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
+            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].HGC, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
             //HGCAddress.publicMint(HGCAmount);
@@ -199,6 +200,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
     //claiming babyBear tokens:
     function claimBabyBear(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
+            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
             //babyBearAddress.publicMint(babyBearAmount);
@@ -229,7 +231,6 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         
         //withdraw HNYTokens:
         if(addressToUser[msg.sender].HNY >= 1){
-
             uint256 HNYAmount = addressToUser[msg.sender].HNY;
             addressToUser[msg.sender].HNY = 0;
             bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
@@ -239,7 +240,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         //withdraw babyBearTokens:
         if(addressToUser[msg.sender].babyBear >= 1){
-
+            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
             babyBearAddress.publicMint(babyBearAmount);
 
@@ -257,6 +258,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         
         //withdraw HGCTokens:
         if(addressToUser[msg.sender].HGC >= 1){
+            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].HGC, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
             HGCAddress.publicMint(HGCAmount);
 
@@ -371,7 +373,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         contractEnabled = _bool;
     }
 
-    function witdrawETH(uint256 _weiAmount) public onlyOwner() {
+    function withdraw(uint256 _weiAmount) public onlyOwner() {
         payable(msg.sender).transfer(_weiAmount);
     }
 
