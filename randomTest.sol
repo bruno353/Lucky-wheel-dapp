@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 interface IBabyBearToken {
     function publicMint(uint256) external;
-    function getTokensOwnedByWallet(address, uint256, uint256)  external view returns(uint[] memory);
+    function getTokensOwnedByWallet(address, uint, uint)  external view returns(uint[] memory);
     function transferFrom(address, address, uint256) external;
     function balanceOf(address) external view returns(uint256);
 }
@@ -217,8 +217,9 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         addressToUser[msg.sender].babyBear += 1;
     }
 
-    function getTokensOwned(uint256 startingIndex, uint256 endingIndex) public view returns(uint[] memory){
-        return babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+    function getTokensOwned(uint startingIndex, uint endingIndex) public view returns(uint[] memory){
+        uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
+        return arrayBabyBears;
     }
 
 
