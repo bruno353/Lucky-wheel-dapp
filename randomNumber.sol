@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 interface IBabyBearToken {
     function publicMint(uint256) external;
-    function getTokensOwnedByWallet(address, uint256, uint256)  external view returns(uint[] memory);
+    function getTokensOwnedByWallet(address, uint, uint)  external view returns(uint[] memory);
     function transferFrom(address, address, uint256) external;
     function balanceOf(address) external view returns(uint256);
 }
@@ -183,35 +183,34 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     }
 
     //claiming HGC tokens:
-    function claimHGC(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
+    function claimHGC(uint256[] memory arrayTokensIds) public  onlyContractEnabled() nonReentrant { 
             require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].HGC, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
-            //HGCAddress.publicMint(HGCAmount);
             addressToUser[msg.sender].HGC = 0;
-
             for (uint256 i = 1; i <= HGCAmount; i++) {
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
-                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayTokensIds[HGCAmount - i]);
             }
             
             emit RewardClaimed(1, msg.sender);
     }
 
-    //claiming babyBear tokens:
-    function claimBabyBear(uint256 startingIndex, uint256 endingIndex) public  onlyContractEnabled() nonReentrant { 
-            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
+    function test() public {
+        addressToUser[msg.sender].babyBear += 1;
+        addressToUser[msg.sender].HGC += 1;
+    }
+
+    function claimBabyBear(uint256[] memory arrayTokensIds) public  onlyContractEnabled() nonReentrant { 
+            require(babyBearAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
-            //babyBearAddress.publicMint(babyBearAmount);
             addressToUser[msg.sender].babyBear = 0;
             for (uint256 i = 1; i <= babyBearAmount; i++) {
-                uint[] memory arrayBabyBears = babyBearAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
-                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBears[0]);
+                babyBearAddress.transferFrom(address(this), msg.sender, arrayTokensIds[babyBearAmount - i]);
             }
-            
             emit RewardClaimed(2, msg.sender);
     }
+
 
     //claiming HNY tokens:
     function claimHNY() public onlyContractEnabled() nonReentrant {
@@ -240,7 +239,7 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
 
         //withdraw babyBearTokens:
         if(addressToUser[msg.sender].babyBear >= 1){
-            require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
+            require(babyBearAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
             babyBearAddress.publicMint(babyBearAmount);
 
@@ -377,23 +376,21 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
         payable(msg.sender).transfer(_weiAmount);
     }
 
-    function withdrawTokens(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyOwner() {
+    function withdrawTokens(uint256[] memory arrayTokensIdsBabyBears, uint256[] memory arrayTokensIdsHGC) public onlyOwner() {
         uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
         HNYAddress.transfer(msg.sender, HNYtotalAmount);
 
         //withdraw babyBearTokens:
         uint256 babyBearAmount = babyBearAddress.balanceOf(address(this));
         for (uint256 i = 1; i <= babyBearAmount; i++){
-            uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
-            babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
+            babyBearAddress.transferFrom(address(this), msg.sender, arrayTokensIdsBabyBears[babyBearAmount - i]);
         } 
         
         
         //withdraw HGCTokens:
         uint256 HGCAmount = HGCAddress.balanceOf(address(this));
         for (uint256 i = 1; i <= HGCAmount; i++){
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
-                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
+                HGCAddress.transferFrom(address(this), msg.sender, arrayTokensIdsHGC[HGCAmount - i]);
         } 
     }
 
@@ -405,6 +402,4 @@ contract randomNumber is RrpRequesterV0, ReentrancyGuard {
     function preMintHGC(uint256 amount) public onlyOwner {
         HGCAddress.publicMint(amount);
     }
-
-
 }
