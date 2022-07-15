@@ -21,7 +21,7 @@ interface IHGCToken {
     function balanceOf(address) external view returns(uint256);
 }
 
-contract randomNumber is RrpRequesterV0, ReentrancyGuard {
+contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
 
     using Counters for Counters.Counter;
 
