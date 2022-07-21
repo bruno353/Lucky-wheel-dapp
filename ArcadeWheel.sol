@@ -34,7 +34,7 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
     event RewardReceived(uint256 reward, address _address);
 
     //emit when the user claims his rewards:
-    //reward claimed subs: 0 => freeSpin; 1 => HGC; 2 => babyBear; 3 => HNY
+    //reward claimed subs: 0 => freeSpin; 1 => HGC; 2 => babyBear; 3 => HNY; 4 => all
     event RewardClaimed(uint256 reward, address user);
 
     // These can be set using setRequestParameters())
@@ -250,6 +250,7 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
                 HGCAddress.transferFrom(address(this), msg.sender, arrayTokensIdsHGC[HGCAmount - i]);
             }
         }
+        emit RewardClaimed(4, msg.sender);
     }
 
     // Set parameters used by airnodeRrp.makeFullRequest(...)
