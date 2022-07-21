@@ -132,13 +132,11 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             freeSpinWheel();
             emit RewardClaimed(0, msg.sender);
         }
-
         if (option == 1) {
             require(addressToUser[msg.sender].HGC >= 1, "You dont have 'HGC' available for claiming");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
             HGCAddress.publicMint(HGCAmount);
             addressToUser[msg.sender].HGC = 0;
-
             for (uint256 i = 1; i <= HGCAmount; i++) {
                 uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), startingIndex, endingIndex);
                 HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
@@ -146,7 +144,6 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             
             emit RewardClaimed(1, msg.sender);
         }
-
         if (option == 2) {
             require(addressToUser[msg.sender].babyBear >= 1, "You dont have 'BabyBear' available for claiming");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
@@ -158,17 +155,13 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             }
             
             emit RewardClaimed(2, msg.sender);
-
         }
-
         if (option == 3) {
             require(addressToUser[msg.sender].HNY >= 1, "You dont have HNY' available for claiming");
             uint256 HNYAmount = addressToUser[msg.sender].HNY;
             addressToUser[msg.sender].HNY = 0;
             bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
-
-
             emit RewardClaimed(3, msg.sender);
         }
     } */
@@ -225,15 +218,15 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
 
 
     //claim all the user rewards at the once:
-    function claimAll(uint256 babyBearStartingIndex, uint256 babyBearEndingIndex, uint256 HGCStartingIndex, uint256 HGCEndingIndex) public onlyContractEnabled() nonReentrant {
+    function claimAll(uint256[] memory arrayTokensIdsBabyBears, uint256[] memory arrayTokensIdsHGC) public onlyContractEnabled() nonReentrant {
         require(addressToUser[msg.sender].HNY >= 1 || addressToUser[msg.sender].babyBear >= 1  || addressToUser[msg.sender].HGC >= 1, "You dont have any reward to claim");
         
         //withdraw HNYTokens:
         if(addressToUser[msg.sender].HNY >= 1){
             uint256 HNYAmount = addressToUser[msg.sender].HNY;
-            addressToUser[msg.sender].HNY = 0;
             bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
             require(sent, "Failed to withdraw the tokens");
+            addressToUser[msg.sender].HNY = 0;
 
         }
 
@@ -241,17 +234,10 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
         if(addressToUser[msg.sender].babyBear >= 1){
             require(babyBearAddress.balanceOf(address(this)) >= addressToUser[msg.sender].babyBear, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             uint256 babyBearAmount = addressToUser[msg.sender].babyBear;
-            babyBearAddress.publicMint(babyBearAmount);
-
             addressToUser[msg.sender].babyBear = 0;
-
-            for (uint256 i = 1; i <= babyBearAmount; i++){
-
-                uint256[] memory arrayBabyBear = babyBearAddress.getTokensOwnedByWallet(address(this), babyBearStartingIndex, babyBearEndingIndex);
-                babyBearAddress.transferFrom(address(this), msg.sender, arrayBabyBear[0]);
-
-            } 
-
+            for (uint256 i = 1; i <= babyBearAmount; i++) {
+                babyBearAddress.transferFrom(address(this), msg.sender, arrayTokensIdsBabyBears[babyBearAmount - i]);
+            }
         }
         
         
@@ -259,14 +245,9 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
         if(addressToUser[msg.sender].HGC >= 1){
             require(HGCAddress.balanceOf(address(this)) >= addressToUser[msg.sender].HGC, "The contract does not have enough HGC tokens for the transaction, please contact a developer for maintenance.");
             uint256 HGCAmount = addressToUser[msg.sender].HGC;
-            HGCAddress.publicMint(HGCAmount);
-
             addressToUser[msg.sender].HGC = 0;
-
             for (uint256 i = 1; i <= HGCAmount; i++) {
-                uint[] memory arrayHGC = HGCAddress.getTokensOwnedByWallet(address(this), HGCStartingIndex, HGCEndingIndex);
-                HGCAddress.transferFrom(address(this), msg.sender, arrayHGC[0]);
-                
+                HGCAddress.transferFrom(address(this), msg.sender, arrayTokensIdsHGC[HGCAmount - i]);
             }
         }
     }
