@@ -47,7 +47,6 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
     bool public contractEnabled;
 
     //tokens addresses
-    IERC20 public HNYAddress;
     IERC20 public USDCAddress;
 
     //fee require to spin the wheel
@@ -79,15 +78,13 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
         _;
     }
 
-    constructor(address _airnodeRrp, address _USDCAddress, address _HNYAddress) RrpRequesterV0(_airnodeRrp) {
+    constructor(address _airnodeRrp, address _USDCAddress) RrpRequesterV0(_airnodeRrp) {
         owner = msg.sender;
         contractEnabled = true;
         USDCAddress = IERC20(_USDCAddress);
-        HNYAddress = IERC20(_HNYAddress);
     }
 
-    function setTokensAddress(address _HNYAddress, address _USDCAddress) public onlyOwner() {
-        HNYAddress = IERC20(_HNYAddress);
+    function setTokensAddress(address _USDCAddress) public onlyOwner() {
         USDCAddress = IERC20(_USDCAddress);
     }
 
@@ -102,7 +99,7 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
 
     //spin the wheel
     function spinWheel() public  onlyContractEnabled() {
-        bool sent = HNYAddress.transferFrom(msg.sender, address(this), fee);
+        bool sent = USDCAddress.transferFrom(msg.sender, address(this), fee);
         require(sent, "Failed to spin the wheel");
 
 
@@ -171,16 +168,6 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             emit RewardClaimed(0, msg.sender);
     }
 
-    //claiming HNY tokens:
-    function claimHNY() public onlyContractEnabled() nonReentrant {
-            require(addressToUser[msg.sender].HNY >= 1, "You dont have HNY available for claiming");
-            uint256 HNYAmount = addressToUser[msg.sender].HNY;
-            addressToUser[msg.sender].HNY = 0;
-            bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
-            require(sent, "Failed to withdraw the tokens");
-
-            emit RewardClaimed(2, msg.sender);
-    }
 
     //claiming USDC tokens:
     function claimUSDC() public onlyContractEnabled() nonReentrant {
@@ -192,29 +179,6 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             emit RewardClaimed(3, msg.sender);
     }
 
-
-    //claim all the user rewards at the once:
-    function claimAll() public onlyContractEnabled() nonReentrant {
-        require(addressToUser[msg.sender].HNY >= 1 || addressToUser[msg.sender].USDC >= 1, "You dont have any reward to claim");
-        
-        //withdraw HNYTokens:
-        if(addressToUser[msg.sender].HNY >= 1){
-            uint256 HNYAmount = addressToUser[msg.sender].HNY;
-            bool sent = HNYAddress.transfer(msg.sender, HNYAmount * 10 ** 18);
-            require(sent, "Failed to withdraw the tokens");
-            addressToUser[msg.sender].HNY = 0;
-
-        }
-
-        //withdraw USDC tokens:
-        if(addressToUser[msg.sender].USDC >= 1){
-            uint256 USDCAmount = addressToUser[msg.sender].USDC;
-            bool sent = USDCAddress.transfer(msg.sender, USDCAmount * 10 ** 18);
-            require(sent, "Failed to withdraw the tokens");
-            addressToUser[msg.sender].USDC = 0;
-        }    
-        emit RewardClaimed(4, msg.sender);
-    }
 
     // Set parameters used by airnodeRrp.makeFullRequest(...)
     // See makeRequestUint256()
@@ -322,11 +286,6 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
     }
 
     function withdrawTokens() public onlyOwner() {
-        uint256 HNYtotalAmount = HNYAddress.balanceOf(address(this));
-        if (HNYtotalAmount > 0){
-            HNYAddress.transfer(msg.sender, HNYtotalAmount);
-        }
-
         uint256 USDCTotalAmount = USDCAddress.balanceOf(address(this));
         if (USDCTotalAmount > 0){
             USDCAddress.transfer(msg.sender, USDCTotalAmount);
