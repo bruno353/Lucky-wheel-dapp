@@ -37,7 +37,7 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
     IERC20 public USDCAddress;
 
     //fee require to spin the wheel
-    uint256 public fee = 5 * 10 ** 18;
+    uint256 public fee = 5 * 10 ** 6;
 
     //Each user will have its "wallet", so it can be stored the user rewards:
     struct user {
