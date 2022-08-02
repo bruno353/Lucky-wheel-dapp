@@ -108,9 +108,9 @@ contract ArcadeWheel is RrpRequesterV0, ReentrancyGuard {
             require(addressToUser[msg.sender].USDC >= 1, "You dont have USDC available for claiming");
             uint256 USDCAmount = addressToUser[msg.sender].USDC;
             addressToUser[msg.sender].USDC = 0;
-            bool sent = USDCAddress.transfer(msg.sender, USDCAmount * 10 ** 18);
+            bool sent = USDCAddress.transfer(msg.sender, USDCAmount * 10 ** 6);
             require(sent, "Failed to withdraw the tokens");
-            emit RewardClaimed(3, msg.sender);
+            emit RewardClaimed(1, msg.sender);
     }
 
 
